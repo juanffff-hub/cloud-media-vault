@@ -1,0 +1,53 @@
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  moduleFormat           = "esm"
+  generatedFileExtension = "ts"
+  importFileExtension    = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Categoria {
+  imagen
+  video
+  pdf
+}
+
+enum ResourceType {
+  image
+  video
+}
+
+enum EstadoActivo {
+  ACTIVO
+  ELIMINANDO
+  ERROR_BORRADO
+  NUBE_ELIMINADA
+}
+
+model Activo {
+  id                  String       @id @default(uuid()) @db.Uuid
+  titulo              String       @db.VarChar(160)
+  nombreOriginal      String       @db.VarChar(255)
+  secureUrl           String       @db.VarChar(2048)
+  publicId            String       @db.VarChar(255)
+  resourceType        ResourceType
+  categoria           Categoria
+  mimeType            String       @db.VarChar(100)
+  tamanoBytes         Int
+  fechaSubida         DateTime     @default(now()) @db.Timestamptz(3)
+  subidoPor           String       @db.VarChar(100)
+  estado              EstadoActivo @default(ACTIVO)
+  intentosBorrado     Int          @default(0)
+  borradoIniciadoEn   DateTime?    @db.Timestamptz(3)
+  ultimoErrorCodigo   String?      @db.VarChar(64)
+  actualizadoEn      DateTime     @updatedAt @db.Timestamptz(3)
+
+  @@unique([publicId, resourceType])
+  @@index([estado, fechaSubida(sort: Desc), id(sort: Desc)])
+  @@index([estado, categoria, fechaSubida(sort: Desc), id(sort: Desc)])
+  @@index([titulo(ops: raw("gin_trgm_ops"))], type: Gin, map: "Activo_titulo_trgm_idx")
+}
