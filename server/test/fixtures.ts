@@ -7,3 +7,5 @@ export const validEnvironment = {
   CLOUDINARY_API_KEY: '123456789012345',
   CLOUDINARY_API_SECRET: 'unit-only-not-a-real-secret',
 };
+
+export const healthyProbe = async () => ({ status: 'ok' as const, database: 'up' as const });

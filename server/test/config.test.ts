@@ -2,7 +2,7 @@ import request from 'supertest';
 import { expect, test } from 'vitest';
 import { createApp } from '../src/app.js';
 import { readEnvironment } from '../src/config/env.js';
-import { validEnvironment } from './fixtures.js';
+import { healthyProbe, validEnvironment } from './fixtures.js';
 
 test('entorno válido: límite fijo de 10 MiB y configuración inmutable', () => {
   const config = readEnvironment(validEnvironment);
@@ -31,7 +31,7 @@ test('un error de configuración nunca imprime el valor secreto', () => {
 });
 
 test('CORS permite el origen configurado y preflight DELETE', async () => {
-  const app = createApp(readEnvironment(validEnvironment));
+  const app = createApp(readEnvironment(validEnvironment), healthyProbe);
   const response = await request(app).options('/api/archivos/id')
     .set('Origin', validEnvironment.CLIENT_ORIGIN).set('Access-Control-Request-Method', 'DELETE');
   expect(response.status).toBe(204);
@@ -41,7 +41,7 @@ test('CORS permite el origen configurado y preflight DELETE', async () => {
 });
 
 test('CORS rechaza otros orígenes sin reflejarlos ni exponer detalles', async () => {
-  const response = await request(createApp(readEnvironment(validEnvironment)))
+  const response = await request(createApp(readEnvironment(validEnvironment), healthyProbe))
     .get('/api').set('Origin', 'https://untrusted.test');
   expect(response.status).toBe(400);
   expect(response.headers['access-control-allow-origin']).toBeUndefined();
@@ -49,7 +49,7 @@ test('CORS rechaza otros orígenes sin reflejarlos ni exponer detalles', async (
 });
 
 test('JSON mal formado produce 400 sin reflejar el cuerpo', async () => {
-  const response = await request(createApp(readEnvironment(validEnvironment)))
+  const response = await request(createApp(readEnvironment(validEnvironment), healthyProbe))
     .post('/api/archivos').set('Content-Type', 'application/json').send('{"private":');
   expect(response.status).toBe(400);
   expect(JSON.stringify(response.body)).not.toContain('private');
