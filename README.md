@@ -24,6 +24,8 @@ Requisitos: Node.js 24 LTS y npm 11. Desde la raíz:
 
 ```sh
 npm ci
+# Configurar los archivos de entorno antes de iniciar el servidor:
+# ver docs/configuracion-local.md
 npm run dev
 ```
 
@@ -52,3 +54,7 @@ docs/                Requisitos, arquitectura, API y demo
 Nunca se versionan `.env`, credenciales, `node_modules`, `dist` ni archivos subidos.
 Solo Cloudinary almacenará los binarios; PostgreSQL conservará URL y metadatos.
 La entrega final incluye una demostración real de subida y borrado en ambos servicios.
+
+Configuración de servicios y variables: [guía local](docs/configuracion-local.md).
+La API valida el entorno antes de escuchar; si falta un dato informa solo el nombre
+de la variable. El cliente acepta únicamente configuración pública de URL y límite.
