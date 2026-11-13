@@ -36,7 +36,7 @@ export function createCloudinaryStorage(config: CloudConfig, gateway: Cloudinary
   return {
     async upload({ buffer, category }) {
       const media = types[category];
-      if (!media || !Buffer.isBuffer(buffer) || !buffer.length || buffer.length > config.MAX_FILE_SIZE_BYTES) {
+      if (!Object.hasOwn(types, category) || !media || !Buffer.isBuffer(buffer) || !buffer.length || buffer.length > config.MAX_FILE_SIZE_BYTES) {
         throw new CloudStorageError('INVALID_UPLOAD');
       }
       const candidate = { publicId: `${config.CLOUDINARY_FOLDER}/${randomUUID()}`, resourceType: media.resourceType };

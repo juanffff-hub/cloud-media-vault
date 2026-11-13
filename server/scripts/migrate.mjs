@@ -8,7 +8,7 @@ try {
   const target = loadDatabaseTarget(isTest);
   const require = createRequire(import.meta.url);
   const command = process.argv.includes('--status') ? 'status' : 'deploy';
-  const result = spawnSync(process.execPath, [require.resolve('prisma'), 'migrate', command], {
+  const result = spawnSync(process.execPath, [require.resolve('prisma/build/index.js'), 'migrate', command], {
     cwd: fileURLToPath(new URL('..', import.meta.url)),
     env: { ...process.env, DATABASE_URL: target.databaseUrl, DIRECT_URL: target.directUrl },
     encoding: 'utf8',

@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": false
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts", "scripts/**/*", "prisma.config.ts", "vitest.config.ts"]
+}

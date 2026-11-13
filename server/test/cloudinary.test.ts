@@ -48,7 +48,7 @@ test('cada subida recibe un identificador independiente del nombre del archivo',
   expect((await storage.upload(input)).publicId).not.toBe((await storage.upload(input)).publicId);
 });
 
-test.each([{ secure_url: 'http://unsafe.test/a' }, { resource_type: 'raw' }, { bytes: 0 }, { format: 'exe' }])('rechaza metadatos cloud inválidos', async (result) => {
+test.each([{ secure_url: 'http://unsafe.test/a' }, { resource_type: 'raw' }, { bytes: 0 }, { format: 'exe' }] as const)('rechaza metadatos cloud inválidos', async (result) => {
   await expect(createCloudinaryStorage(config, gatewayWithResponse(result)).upload({
     buffer: Buffer.from('fixture'), category: 'imagen',
   })).rejects.toMatchObject({ code: 'INVALID_CLOUD_RESPONSE' });

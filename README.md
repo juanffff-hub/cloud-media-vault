@@ -58,3 +58,25 @@ La entrega final incluye una demostración real de subida y borrado en ambos ser
 Configuración de servicios y variables: [guía local](docs/configuracion-local.md).
 La API valida el entorno antes de escuchar; si falta un dato informa solo el nombre
 de la variable. El cliente acepta únicamente configuración pública de URL y límite.
+
+## Arquitectura y verificaciones de la Parte 1
+
+- [Diagrama y decisiones](docs/arquitectura.md).
+- [Modelo Prisma y migraciones](docs/modelo-datos.md).
+- [Endpoint de salud](docs/salud.md).
+- [Adaptador Cloudinary](docs/cloudinary.md).
+- [Pruebas automatizadas y reales](docs/pruebas-parte-1.md).
+- [Resultados de verificación de la Parte 1](docs/informe-parte-1.md).
+- [Consigna y rúbrica](docs/requisitos.md).
+
+Configurar las dos bases Neon antes de aplicar migraciones:
+
+```sh
+npm run test:db -w server
+npm run db:migrate -w server
+npm run db:check -w server
+npm run cloud:check -w server
+```
+
+`GET /api/health` comprueba PostgreSQL. Las rutas de activos se incorporarán en
+las partes siguientes. La interfaz inicial todavía no permite subir ni borrar.
