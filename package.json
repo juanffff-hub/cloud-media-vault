@@ -1,0 +1,15 @@
+{
+  "name": "cloud-media-vault",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["client", "server"],
+  "engines": { "node": ">=24.11.0 <25" },
+  "scripts": {
+    "dev": "concurrently -k -n server,client \"npm run dev -w server\" \"npm run dev -w client\"",
+    "test": "npm run test --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "build": "npm run build --workspaces",
+    "check": "npm run typecheck && npm test && npm run build"
+  },
+  "devDependencies": { "concurrently": "10.0.7" }
+}
