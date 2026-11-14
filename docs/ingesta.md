@@ -47,5 +47,28 @@ responde 201 `{ data: registro }`. El contrato de persistencia recibe únicament
 metadatos; nunca recibe el buffer. La prueba del endpoint usa persistencia simulada.
 
 La ruta continúa ausente de `app.ts`; la aplicación pública responde 404 al POST.
-La Parte 3 conectará Prisma y montará la ruta. La compensación de fallos entre cloud
-y persistencia se completa en el siguiente commit de esta parte antes de la integración.
+La Parte 3 conectará Prisma y montará la ruta, inyectando también `createUploadJournal()`.
+
+## Compensación y recuperación
+
+Antes del primer byte hacia Cloudinary se registra `PREPARED` con UUID de operación,
+publicId y resourceType. El diario `server/var/upload-journal.jsonl` se escribe con
+`fsync`, está ignorado por Git y contiene solo referencias/códigos, nunca binarios,
+formularios, respuestas crudas ni credenciales. La ingesta falla antes de transferir
+si no puede guardar esa referencia. Debe residir en almacenamiento persistente al desplegar.
+
+Después de cloud se registra `UPLOAD_CONFIRMED`; después de DB, `PERSISTED`. Si DB
+falla, se intenta borrar el recurso cloud y se registra `COMPENSATED` o
+`RECONCILIATION_REQUIRED`. Si el cliente se desconecta antes de DB, también se compensa.
+Un fallo del diario después de confirmar DB no provoca el borrado de ese activo.
+
+Si cloud termina con timeout o cancelación, se intenta limpiar su referencia preparada
+pero se conserva como pendiente: una petición remota podría terminar después del borrado.
+Una caída del proceso también deja la referencia durable para revisar.
+
+Para recuperar, agrupar el diario por operationId y consultar el último estado. Ante
+un estado sin resolver, verificar primero en PostgreSQL si existe publicId/resourceType;
+si existe, conservar cloud y reconciliar el diario. Si no existe, verificar el resultado
+remoto y reintentar el borrado del recurso de este proyecto. Nunca borrar automáticamente
+una referencia solo por aparecer pendiente: DB pudo confirmar antes de la interrupción.
+La automatización de reconciliación con el repositorio real se incorpora en Parte 3.

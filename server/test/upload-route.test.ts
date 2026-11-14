@@ -6,6 +6,7 @@ import { createApp } from '../src/app.js';
 import { errorHandler } from '../src/middleware/errors.js';
 import type { CloudStorage, CloudAsset } from '../src/services/cloud-storage.js';
 import type { AssetPersistence } from '../src/services/asset-persistence.js';
+import type { UploadJournal } from '../src/services/upload-journal.js';
 import { tinyPng } from './media-fixtures.js';
 import { healthyProbe } from './fixtures.js';
 
@@ -19,7 +20,8 @@ export function uploadTestDependencies() {
   const persistence: AssetPersistence = { create: vi.fn(async data => ({
     ...data, id: '2c277e48-c6b9-45de-a7fe-9734ff6576a3', fechaSubida: new Date('2026-11-13T12:00:00Z'), estado: 'ACTIVO',
   })) };
-  return { cloud, persistence };
+  const journal: UploadJournal = { append: vi.fn().mockResolvedValue(undefined) };
+  return { cloud, persistence, journal };
 }
 
 function testApp(dependencies = uploadTestDependencies()) {
@@ -75,5 +77,5 @@ test('la aplicación pública mantiene POST sin registrar hasta Parte 3', async 
 });
 
 test('la fábrica de la ruta no admite una persistencia ausente', () => {
-  expect(() => createUploadRouter({ cloud: uploadTestDependencies().cloud, persistence: undefined! })).toThrow('persistencia conectada');
+  expect(() => createUploadRouter({ ...uploadTestDependencies(), persistence: undefined! })).toThrow('persistencia conectada');
 });
