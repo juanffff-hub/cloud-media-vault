@@ -12,7 +12,8 @@ Al cerrar la respuesta se libera la referencia al buffer. No se guarda el binari
 
 El pico de memoria incluye los chunks y su concatenación (hasta aproximadamente
 20 MiB por recepción, además del procesamiento posterior y del proceso base).
-La Parte 2 añadirá validación de contenido, transferencia, compensación y sus pruebas.
+La inspección de firmas corre en un worker separado, con plazo de tres segundos y
+memoria de JS acotada. Copia como máximo un buffer adicional de 10 MiB por operación.
 
 Un multipart mal formado, campos excesivos o archivos adicionales responden 400.
 Un archivo que supera el máximo responde 413. Si los cupos están ocupados, responde
@@ -23,3 +24,17 @@ La recepción se prueba en rutas de test. `POST /api/archivos` permanece sin reg
 en la aplicación hasta conectar la persistencia real en Parte 3.
 
 Referencia: [Multer](https://expressjs.com/en/resources/middleware/multer/).
+
+## Validación
+
+Título y autor deben ser cadenas no vacías de hasta 160 y 100 caracteres. Se rechazan
+duplicados, arrays, objetos y campos adicionales. El nombre de archivo se reduce a su
+nombre base y se eliminan controles y caracteres que alteran la presentación.
+
+Se exige coincidencia entre MIME declarado, extensión y firma detectada: JPEG, PNG,
+WebP, MP4, WebM y PDF. Además se revisan terminación JPEG/PDF, chunks PNG, longitud
+RIFF/WebP, cajas MP4 y marcas de segmento/cluster WebM para detectar truncamientos.
+Son comprobaciones de firma y estructura, no una decodificación completa ni un antivirus.
+Cloudinary vuelve a comprobar el formato al procesar el archivo.
+
+Referencia: [alcance de file-type](https://github.com/sindresorhus/file-type).
