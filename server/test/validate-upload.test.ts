@@ -43,3 +43,13 @@ test('el nombre original elimina rutas, controles y caracteres de presentación 
 test('una inspección cancelada no continúa hacia cloud', async () => {
   await expect(validateUpload(fields, multerFile(tinyPng()), AbortSignal.abort())).rejects.toMatchObject({ code: 'UPLOAD_CANCELLED' });
 });
+
+test('detecta firmas JPEG y WebP con terminación y tamaño coherentes', async () => {
+  const jpeg = Buffer.concat([Buffer.from([0xff,0xd8,0xff,0xe0]), Buffer.alloc(24), Buffer.from([0xff,0xd9])]);
+  const webp = Buffer.concat([Buffer.from('RIFF'), Buffer.alloc(4), Buffer.from('WEBPVP8 '), Buffer.alloc(12)]);
+  webp.writeUInt32LE(webp.length - 8, 4);
+  expect((await validateUpload(fields, multerFile(jpeg, 'a.jpeg', 'image/jpeg'))).categoria).toBe('imagen');
+  expect((await validateUpload(fields, multerFile(webp, 'a.webp', 'image/webp'))).categoria).toBe('imagen');
+  webp.writeUInt32LE(999, 4);
+  await expect(validateUpload(fields, multerFile(webp, 'a.webp', 'image/webp'))).rejects.toMatchObject({ code: 'INVALID_FILE' });
+});

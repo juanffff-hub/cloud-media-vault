@@ -80,3 +80,15 @@ npm run cloud:check -w server
 
 `GET /api/health` comprueba PostgreSQL. Las rutas de activos se incorporarán en
 las partes siguientes. La interfaz inicial todavía no permite subir ni borrar.
+
+## Ingesta y subida cloud — Parte 2
+
+Multer recibe un archivo de hasta 10 MiB con título y autor. La ingesta valida
+MIME, extensión y contenido, transfiere con el SDK firmado y compensa fallos de
+persistencia. Un diario durable conserva las referencias de operaciones inciertas.
+El controlador exige persistencia confirmada antes de responder 201; permanece
+sin registrar en la API pública hasta conectar Prisma en la Parte 3.
+
+- [Límites, validación y compensación](docs/ingesta.md).
+- [Pruebas automatizadas y prueba real de seis formatos](docs/pruebas-parte-2.md).
+- [Resultados de verificación de la Parte 2](docs/informe-parte-2.md).

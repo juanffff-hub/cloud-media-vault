@@ -11,15 +11,18 @@ flowchart LR
   API --> Salud[Servicio de salud]
   Salud --> Prisma[Prisma + adaptador pg]
   Prisma -->|URL y metadatos| Neon[(Neon PostgreSQL)]
-  API -.-> Servicios[Servicios de activos: partes 2 y 3]
-  Servicios -.-> Cloud[Adaptador Cloudinary]
+  API -.-> Ingesta[Multipart y validación: Parte 2]
+  Ingesta --> Servicios[Servicio de ingesta]
+  Servicios --> Diario[Diario durable de referencias]
+  Servicios --> Cloud[Adaptador Cloudinary]
   Cloud -->|Binario y borrado| Cloudinary[(Cloudinary)]
-  Servicios -.-> Prisma
+  Servicios -.->|Persistencia real: Parte 3| Prisma
 ```
 
 Las conexiones discontinuas representan flujos aún no registrados en la API.
 La Parte 1 provee base ejecutable, configuración, modelo/migración, salud y adaptadores.
-No hay un POST público que confirme éxito sin persistencia.
+La Parte 2 prepara y prueba la ingesta con un contrato de persistencia inyectable.
+No hay un POST público que confirme éxito sin persistencia: se montará en Parte 3.
 
 ## Decisiones
 
@@ -36,9 +39,10 @@ No hay un POST público que confirme éxito sin persistencia.
    NUBE_ELIMINADA. La Parte 3 implementará la transición y recuperación persistente;
    el listado excluirá todo estado distinto de ACTIVO. No existe transacción compartida
    entre Cloudinary y PostgreSQL.
-6. **Subidas inciertas.** El adaptador conserva una referencia candidata segura cuando
-   un fallo impide confirmar la subida. La Parte 2 debe implementar compensación y
-   registro de reconciliación; un timeout no prueba que el proveedor no creó un recurso.
+6. **Subidas inciertas.** Antes de transferir se guarda una referencia en un diario con
+   `fsync`. La ingesta compensa fallos y conserva operaciones pendientes; un timeout
+   no prueba que el proveedor no creó un recurso. Parte 3 conectará su reconciliación
+   con PostgreSQL. El diario requiere almacenamiento persistente al desplegar.
 7. **PDF como image.** Se guarda el resourceType devuelto por Cloudinary y se verifica
    la entrega de PDF en su configuración Security. Borrado con invalidación de CDN.
 8. **Sin autenticación añadida.** `subidoPor` no acredita identidad. CORS no impide
@@ -46,10 +50,13 @@ No hay un POST público que confirme éxito sin persistencia.
 
 ## Límites del estado actual
 
-- No están implementados multipart, validación de firmas, CRUD ni galería.
+- Multipart, validación y transferencia están implementados y probados. Faltan
+  conectar la persistencia real al POST, el CRUD y la galería.
 - `health` verifica DB; no hace ping a Cloudinary.
-- El límite por buffer del adaptador no sustituye el control de concurrencia/Multer de Parte 2.
+- Multer admite dos cargas simultáneas, limita cada archivo a 10 MiB y acota campos,
+  partes y recepción. La inspección usa un worker con plazo y memoria acotados.
 - Las pruebas con dobles no sustituyen migración/conexión reales a Neon ni la demo final.
 
 Detalle: [modelo](modelo-datos.md), [salud](salud.md), [Cloudinary](cloudinary.md),
-[configuración](configuracion-local.md), [verificación](pruebas-parte-1.md).
+[configuración](configuracion-local.md), [ingesta](ingesta.md),
+[verificación de arquitectura](pruebas-parte-1.md), [verificación de subida](pruebas-parte-2.md).

@@ -2,8 +2,8 @@
 
 El contrato `CloudStorage` separa servicios de aplicación del SDK. Recibe un buffer
 acotado y categoría; devuelve URL HTTPS, publicId, resourceType, tamaño y formato
-realmente devueltos por el proveedor. Aún no se registra el POST: la ingesta será
-Parte 2 y la confirmación tras persistencia será Parte 3.
+realmente devueltos por el proveedor. La ingesta de Parte 2 está preparada; aún no
+se registra el POST porque la integración con persistencia real corresponde a Parte 3.
 
 | Categoría | resource_type | Formatos |
 | --- | --- | --- |
@@ -18,7 +18,8 @@ No se realizan conversiones ni se activa un preset unsigned.
 Las credenciales se pasan al SDK solo desde el backend. Los IDs usan UUID y prefijo
 `cloud-media-vault/`; no se derivan del nombre original ni permiten sobrescritura.
 El adaptador conserva un identificador candidato seguro cuando la respuesta es
-incierta, para que el servicio de ingesta pueda compensar/reconciliar en la Parte 2.
+incierta. El servicio de ingesta compensa y registra referencias pendientes en un diario;
+la reconciliación con PostgreSQL se conectará en Parte 3.
 El SDK recibe un timeout explícito. La validación de firma, MIME y extensión
 pertenece a la ingesta; los formatos del proveedor son una segunda comprobación.
 
@@ -42,6 +43,8 @@ npm run cloud:check -w server
 
 Las pruebas unitarias inyectan un gateway y nunca llaman al proveedor. Las pruebas
 reales usan únicamente recursos creados por este proyecto.
+La [prueba real de seis formatos](pruebas-parte-2.md) comprueba subida, consulta del
+proveedor, entrega HTTPS y borrado de cada recurso, incluido un PDF con `image`.
 
 Referencias: [SDK Node](https://cloudinary.com/documentation/node_image_and_video_upload),
 [Upload API / destroy](https://cloudinary.com/documentation/image_upload_api_reference#destroy_method),
