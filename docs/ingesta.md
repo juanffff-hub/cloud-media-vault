@@ -38,3 +38,14 @@ Son comprobaciones de firma y estructura, no una decodificación completa ni un 
 Cloudinary vuelve a comprobar el formato al procesar el archivo.
 
 Referencia: [alcance de file-type](https://github.com/sindresorhus/file-type).
+
+## Contrato preparado para Parte 3
+
+`createUploadRouter` compone multipart, validación y servicio de ingesta. Exige
+`AssetPersistence.create`, que debe resolver tras confirmar PostgreSQL. Solo entonces
+responde 201 `{ data: registro }`. El contrato de persistencia recibe únicamente
+metadatos; nunca recibe el buffer. La prueba del endpoint usa persistencia simulada.
+
+La ruta continúa ausente de `app.ts`; la aplicación pública responde 404 al POST.
+La Parte 3 conectará Prisma y montará la ruta. La compensación de fallos entre cloud
+y persistencia se completa en el siguiente commit de esta parte antes de la integración.
