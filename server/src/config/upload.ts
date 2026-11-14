@@ -1,0 +1,3 @@
+export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+export const MAX_CONCURRENT_UPLOADS = 2;
+export const MULTIPART_TIMEOUT_MS = 60_000;
