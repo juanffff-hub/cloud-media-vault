@@ -8,6 +8,7 @@ coverage/
 *.log
 *.tsbuildinfo
 server/src/generated/
+server/var/
 tmp/
 uploads/
 .DS_Store
