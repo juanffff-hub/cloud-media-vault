@@ -22,6 +22,12 @@ incierta, para que el servicio de ingesta pueda compensar/reconciliar en la Part
 El SDK recibe un timeout explícito. La validación de firma, MIME y extensión
 pertenece a la ingesta; los formatos del proveedor son una segunda comprobación.
 
+La transferencia firmada tiene además un plazo absoluto y acepta cancelación del
+cliente. Cada operación usa su propio agente HTTPS; al fallar se destruyen su stream
+y sockets sin afectar otras cargas. `onPrepared` permite guardar la referencia antes
+de enviar datos. Un aborto o timeout puede dejar un resultado remoto incierto: esa
+referencia debe conservarse para reconciliar, nunca suponerse automáticamente ausente.
+
 `delete` exige una referencia interna del proyecto y usa ambos campos guardados.
 Solo `ok` y `not found` confirman que el recurso ya no está; una respuesta ambigua
 o error rechaza la operación. Se solicita `invalidate: true`; la invalidación CDN
