@@ -18,7 +18,9 @@
     "db:check": "tsx scripts/check-database.ts",
     "cloud:check": "tsx scripts/check-cloud.ts",
     "test:db": "npm run db:generate && npm run db:test:migrate && tsx test/integration/database.ts",
-    "test:cloud:live": "tsx test/live/cloud.ts"
+    "test:cloud:live": "tsx test/live/cloud.ts",
+    "assets:recover": "tsx scripts/recover-deletions.ts",
+    "uploads:reconcile": "tsx scripts/reconcile-uploads.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.1",

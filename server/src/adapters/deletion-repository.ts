@@ -1,19 +1,23 @@
 import type { PrismaClient } from '../generated/prisma/client.js';
-import type { AssetDeletionStore } from '../services/delete-asset.js';
+import { DELETION_LEASE_MS, type AssetDeletionStore } from '../services/delete-asset.js';
 
-export function createDeletionRepository(database: Pick<PrismaClient, '$transaction' | 'activo'>): AssetDeletionStore {
+export function createDeletionRepository(database: Pick<PrismaClient, '$transaction' | 'activo'>,
+  now: () => Date = () => new Date()): AssetDeletionStore {
   return {
     async claim(id) {
       return database.$transaction(async tx => {
         const row = await tx.activo.findUnique({ where: { id } });
         if (!row) return 'missing';
-        if (row.estado !== 'ACTIVO') return 'busy';
+        const startedAt = now();
+        if (['ELIMINANDO', 'NUBE_ELIMINADA'].includes(row.estado) && row.borradoIniciadoEn &&
+          row.borradoIniciadoEn.getTime() > startedAt.getTime() - DELETION_LEASE_MS) return 'busy';
         const updated = await tx.activo.updateMany({
-          where: { id, estado: 'ACTIVO', intentosBorrado: row.intentosBorrado },
-          data: { estado: 'ELIMINANDO', intentosBorrado: { increment: 1 }, borradoIniciadoEn: new Date(), ultimoErrorCodigo: null },
+          where: { id, estado: row.estado, intentosBorrado: row.intentosBorrado, borradoIniciadoEn: row.borradoIniciadoEn },
+          data: { estado: 'ELIMINANDO', intentosBorrado: { increment: 1 }, borradoIniciadoEn: startedAt, ultimoErrorCodigo: null },
         });
         if (updated.count !== 1) return 'busy';
-        return { id, publicId: row.publicId, resourceType: row.resourceType, attempt: row.intentosBorrado + 1 };
+        return { id, publicId: row.publicId, resourceType: row.resourceType, attempt: row.intentosBorrado + 1,
+          cloudRemoved: row.estado === 'NUBE_ELIMINADA' };
       });
     },
     async markCloudRemoved(ticket) {

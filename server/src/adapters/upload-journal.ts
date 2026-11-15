@@ -1,4 +1,4 @@
-import { mkdir, open } from 'node:fs/promises';
+import { mkdir, open, readFile, stat } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { UploadEvent, UploadJournal } from '../services/upload-journal.js';
@@ -34,4 +34,20 @@ export function createUploadJournal(path = defaultUploadJournalPath): UploadJour
       return operation;
     },
   };
+}
+
+export async function readUploadJournal(path = defaultUploadJournalPath): Promise<Array<UploadEvent & { recordedAt: string }>> {
+  try {
+    if ((await stat(path)).size > 10 * 1024 * 1024) throw new Error('Revisar y archivar el diario antes de reconciliar.');
+  } catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []; else throw error; }
+  const latest = new Map<string, UploadEvent & { recordedAt: string }>();
+  for (const line of (await readFile(path, 'utf8')).split('\n').filter(line => line.trim())) {
+    const event = JSON.parse(line) as UploadEvent & { recordedAt: string };
+    safeEvent(event);
+    if (typeof event.recordedAt !== 'string' || !Number.isFinite(Date.parse(event.recordedAt))) throw new Error('Fecha del diario inválida.');
+    const previous = latest.get(event.operationId);
+    if (previous && (previous.publicId !== event.publicId || previous.resourceType !== event.resourceType)) throw new Error('Referencia inconsistente.');
+    latest.set(event.operationId, event);
+  }
+  return [...latest.values()];
 }

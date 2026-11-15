@@ -1,7 +1,8 @@
 import { HttpError } from '../middleware/errors.js';
 import type { CloudReference, CloudStorage } from './cloud-storage.js';
 
-export interface DeletionTicket extends CloudReference { id: string; attempt: number }
+export const DELETION_LEASE_MS = 5 * 60 * 1000;
+export interface DeletionTicket extends CloudReference { id: string; attempt: number; cloudRemoved?: boolean }
 export interface AssetDeletionStore {
   claim(id: string): Promise<DeletionTicket | 'missing' | 'busy'>;
   markCloudRemoved(ticket: DeletionTicket): Promise<void>;
@@ -17,8 +18,10 @@ export function createDeleteAsset(store: AssetDeletionStore, cloud: Pick<CloudSt
     if (ticket === 'busy') throw new HttpError(500, 'DELETE_IN_PROGRESS', 'El borrado sigue en curso. Inténtalo de nuevo en unos minutos.');
     const report = (phase: string) => console.error(JSON.stringify({ event: 'DELETE_RETRY_REQUIRED', id, attempt: ticket.attempt, phase }));
     try {
-      const result = await cloud.delete({ publicId: ticket.publicId, resourceType: ticket.resourceType });
-      if (result !== 'deleted' && result !== 'already_absent') throw new Error('Cloud deletion not confirmed');
+      if (!ticket.cloudRemoved) {
+        const result = await cloud.delete({ publicId: ticket.publicId, resourceType: ticket.resourceType });
+        if (result !== 'deleted' && result !== 'already_absent') throw new Error('Cloud deletion not confirmed');
+      }
     } catch {
       try { await store.markCloudError(ticket); } catch { report('CLOUD_ERROR_NOT_RECORDED'); }
       throw new HttpError(500, 'CLOUD_DELETE_FAILED', 'No se pudo confirmar el borrado en la nube. Puedes reintentarlo.');

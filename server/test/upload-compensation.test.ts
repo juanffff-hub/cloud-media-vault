@@ -2,6 +2,7 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { createIngestionService } from '../src/services/ingest-asset.js';
 import { CloudStorageError, type CloudAsset, type CloudStorage } from '../src/services/cloud-storage.js';
 import type { AssetPersistence } from '../src/services/asset-persistence.js';
+import { PersistenceUncertainError } from '../src/services/asset-persistence.js';
 import type { UploadJournal } from '../src/services/upload-journal.js';
 import type { ValidatedUpload } from '../src/services/validate-upload.js';
 import { tinyPng } from './media-fixtures.js';
@@ -77,4 +78,12 @@ test('un fallo tardío del diario no borra un activo que DB confirmó', async ()
   vi.mocked(deps.journal.append).mockImplementation(async event => { if (event.phase === 'PERSISTED') throw new Error('disk unavailable'); });
   await expect(createIngestionService(deps)(input)).resolves.toMatchObject({ id: expect.any(String) });
   expect(deps.cloud.delete).not.toHaveBeenCalled();
+});
+
+test('una escritura DB incierta queda registrada y no elimina un posible activo válido', async () => {
+  const deps = dependencies();
+  vi.mocked(deps.persistence.create).mockRejectedValue(new PersistenceUncertainError());
+  await expect(createIngestionService(deps)(input)).rejects.toMatchObject({ code: 'PERSISTENCE_UNCERTAIN' });
+  expect(deps.cloud.delete).not.toHaveBeenCalled();
+  expect(deps.journal.append).toHaveBeenLastCalledWith(expect.objectContaining({ phase: 'RECONCILIATION_REQUIRED' }));
 });

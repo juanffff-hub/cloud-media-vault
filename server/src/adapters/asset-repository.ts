@@ -1,5 +1,5 @@
 import type { Prisma, PrismaClient } from '../generated/prisma/client.js';
-import type { AssetPersistence, PersistedAsset } from '../services/asset-persistence.js';
+import { PersistenceUncertainError, type AssetPersistence, type PersistedAsset } from '../services/asset-persistence.js';
 import type { AssetListing } from '../services/list-assets.js';
 
 export const assetSelect = {
@@ -12,16 +12,27 @@ export function createAssetRepository(database: Pick<PrismaClient, 'activo' | '$
   return {
     async create(metadata): Promise<PersistedAsset> {
       // Lista explícita: ni el buffer ni campos operativos del cliente llegan a Prisma.
-      const saved = await database.activo.create({
-        data: {
-          titulo: metadata.titulo, nombreOriginal: metadata.nombreOriginal,
-          secureUrl: metadata.secureUrl, publicId: metadata.publicId,
-          resourceType: metadata.resourceType, categoria: metadata.categoria,
-          mimeType: metadata.mimeType, tamanoBytes: metadata.tamanoBytes,
-          subidoPor: metadata.subidoPor, estado: 'ACTIVO',
-        },
-        select: assetSelect,
-      });
+      const data = {
+        titulo: metadata.titulo, nombreOriginal: metadata.nombreOriginal,
+        secureUrl: metadata.secureUrl, publicId: metadata.publicId,
+        resourceType: metadata.resourceType, categoria: metadata.categoria,
+        mimeType: metadata.mimeType, tamanoBytes: metadata.tamanoBytes,
+        subidoPor: metadata.subidoPor, estado: 'ACTIVO' as const,
+      };
+      let saved;
+      try { saved = await database.activo.create({ data, select: assetSelect }); }
+      catch (error) {
+        // Rechazos definitivos de SQL permiten compensar. Una respuesta de red perdida no.
+        const code = (error as { code?: string } | null)?.code;
+        if (code && ['P2000', 'P2002', 'P2003', 'P2004', 'P2011', 'P2014', 'P2020'].includes(code)) throw error;
+        try {
+          saved = await database.activo.findUnique({ where: { publicId_resourceType: {
+            publicId: metadata.publicId, resourceType: metadata.resourceType } }, select: assetSelect });
+        } catch { throw new PersistenceUncertainError(); }
+        if (!saved || Object.entries(data).some(([key, value]) => saved![key as keyof typeof data] !== value)) {
+          throw new PersistenceUncertainError();
+        }
+      }
       if (saved.estado !== 'ACTIVO') throw new Error('La persistencia no confirmó el estado activo.');
       return { ...saved, estado: 'ACTIVO' };
     },

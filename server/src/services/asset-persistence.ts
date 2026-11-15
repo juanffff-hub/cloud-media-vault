@@ -20,3 +20,8 @@ export interface AssetPersistence {
   // Debe resolver solo después de confirmar la escritura en PostgreSQL.
   create(metadata: AssetMetadata): Promise<PersistedAsset>;
 }
+
+// Una desconexión puede ocultar un COMMIT confirmado por PostgreSQL.
+export class PersistenceUncertainError extends Error {
+  constructor() { super('No se pudo determinar el resultado de la escritura.'); }
+}

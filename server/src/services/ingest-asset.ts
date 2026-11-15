@@ -1,7 +1,7 @@
 import { HttpError } from '../middleware/errors.js';
 import { randomUUID } from 'node:crypto';
 import { CloudStorageError, type CloudStorage, type CloudReference } from './cloud-storage.js';
-import type { AssetPersistence } from './asset-persistence.js';
+import { PersistenceUncertainError, type AssetPersistence } from './asset-persistence.js';
 import type { ValidatedUpload } from './validate-upload.js';
 import type { UploadJournal, UploadPhase, UploadReason } from './upload-journal.js';
 
@@ -71,7 +71,11 @@ export function createIngestionService({ cloud, persistence, journal }: Ingestio
         persisted.secureUrl !== asset.secureUrl || persisted.resourceType !== asset.resourceType || persisted.estado !== 'ACTIVO') {
         throw new Error('Persistence did not confirm the asset');
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof PersistenceUncertainError) {
+        await safeRecord('RECONCILIATION_REQUIRED', reference, 'PERSISTENCE_FAILED');
+        throw new HttpError(500, 'PERSISTENCE_UNCERTAIN', 'No se pudo confirmar el guardado. La operación quedó registrada para revisión.');
+      }
       await compensate(reference, 'PERSISTENCE_FAILED');
       throw new HttpError(500, 'PERSISTENCE_FAILED', 'No se pudo guardar el archivo. Inténtalo de nuevo.');
     }
