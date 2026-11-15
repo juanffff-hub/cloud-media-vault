@@ -71,9 +71,17 @@ test('formulario o MIME inválido produce 400 antes de cloud', async () => {
   expect(cloud.upload).not.toHaveBeenCalled();
 });
 
-test('la aplicación pública mantiene POST sin registrar hasta Parte 3', async () => {
+test('una aplicación sin dependencias de ingesta no registra POST', async () => {
   const app = createApp({ CLIENT_ORIGIN: 'http://127.0.0.1:5173' }, healthyProbe);
   expect((await request(app).post('/api/archivos')).status).toBe(404);
+});
+
+test('la aplicación registra POST cuando tiene las dependencias de persistencia', async () => {
+  const app = createApp({ CLIENT_ORIGIN: 'http://127.0.0.1:5173' }, healthyProbe, { upload: uploadTestDependencies() });
+  const response = await request(app).post('/api/archivos').field('titulo', 'Conectado').field('subidoPor', 'Sebastian')
+    .attach('archivo', tinyPng(), 'foto.png');
+  expect(response.status).toBe(201);
+  expect(response.body.data.titulo).toBe('Conectado');
 });
 
 test('la fábrica de la ruta no admite una persistencia ausente', () => {

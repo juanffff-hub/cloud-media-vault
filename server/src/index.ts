@@ -4,13 +4,19 @@ import { fileURLToPath } from 'node:url';
 import { ConfigurationError, readEnvironment } from './config/env.js';
 import { checkDatabase, createDatabase } from './adapters/database.js';
 import { createHealthCheck } from './services/health.js';
+import { createAssetRepository } from './adapters/asset-repository.js';
+import { createCloudinaryStorage } from './adapters/cloudinary.js';
+import { createUploadJournal } from './adapters/upload-journal.js';
 
 loadDotenv({ path: fileURLToPath(new URL('../.env', import.meta.url)), quiet: true });
 try {
   const config = readEnvironment(process.env);
   const database = createDatabase(config.DATABASE_URL);
   const healthCheck = createHealthCheck(() => checkDatabase(database));
-  const server = createApp(config, healthCheck).listen(config.PORT, '127.0.0.1', () => {
+  const persistence = createAssetRepository(database);
+  const cloud = createCloudinaryStorage(config);
+  const journal = createUploadJournal();
+  const server = createApp(config, healthCheck, { upload: { persistence, cloud, journal } }).listen(config.PORT, '127.0.0.1', () => {
     console.info(`Cloud Media Vault API disponible en el puerto ${config.PORT}`);
   });
   server.on('error', async () => {
