@@ -8,10 +8,13 @@ import { createUploadRouter } from './routes/upload.js';
 import type { IngestionDependencies } from './services/ingest-asset.js';
 import { createListRouter } from './routes/list-assets.js';
 import type { AssetListing } from './services/list-assets.js';
+import { createDeleteRouter } from './routes/delete-asset.js';
+import type { DeleteAsset } from './services/delete-asset.js';
 
 export interface ApplicationServices {
   upload?: IngestionDependencies;
   list?: AssetListing;
+  remove?: DeleteAsset;
 }
 
 export function createApp(config: Pick<Environment, 'CLIENT_ORIGIN'>, healthCheck: HealthCheck, services: ApplicationServices = {}) {
@@ -22,6 +25,7 @@ export function createApp(config: Pick<Environment, 'CLIENT_ORIGIN'>, healthChec
   app.use('/api', apiRouter(healthCheck));
   if (services.upload) app.use('/api/archivos', createUploadRouter(services.upload));
   if (services.list) app.use('/api/archivos', createListRouter(services.list));
+  if (services.remove) app.use('/api/archivos', createDeleteRouter(services.remove));
   app.use(notFound);
   app.use(errorHandler);
   return app;

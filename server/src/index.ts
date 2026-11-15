@@ -7,6 +7,8 @@ import { createHealthCheck } from './services/health.js';
 import { createAssetRepository } from './adapters/asset-repository.js';
 import { createCloudinaryStorage } from './adapters/cloudinary.js';
 import { createUploadJournal } from './adapters/upload-journal.js';
+import { createDeletionRepository } from './adapters/deletion-repository.js';
+import { createDeleteAsset } from './services/delete-asset.js';
 
 loadDotenv({ path: fileURLToPath(new URL('../.env', import.meta.url)), quiet: true });
 try {
@@ -16,7 +18,8 @@ try {
   const persistence = createAssetRepository(database);
   const cloud = createCloudinaryStorage(config);
   const journal = createUploadJournal();
-  const server = createApp(config, healthCheck, { upload: { persistence, cloud, journal }, list: persistence }).listen(config.PORT, '127.0.0.1', () => {
+  const remove = createDeleteAsset(createDeletionRepository(database), cloud);
+  const server = createApp(config, healthCheck, { upload: { persistence, cloud, journal }, list: persistence, remove }).listen(config.PORT, '127.0.0.1', () => {
     console.info(`Cloud Media Vault API disponible en el puerto ${config.PORT}`);
   });
   server.on('error', async () => {
