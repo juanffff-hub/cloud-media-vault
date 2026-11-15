@@ -3,7 +3,7 @@ import { createMultipartUpload, uploadSession } from '../middleware/multipart.js
 import { createIngestionService, type IngestionDependencies } from '../services/ingest-asset.js';
 import { validateUpload } from '../services/validate-upload.js';
 
-// No montar en app.ts hasta conectar un repositorio Prisma real en Parte 3.
+// El punto de entrada de producción inyecta el repositorio Prisma y un diario durable.
 export function createUploadRouter(dependencies: IngestionDependencies) {
   const ingest = createIngestionService(dependencies);
   const router = Router();

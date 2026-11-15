@@ -30,7 +30,7 @@ npm run dev
 ```
 
 Cliente: `http://127.0.0.1:5173`. API: `http://127.0.0.1:3001/api`.
-El punto de entrada es funcional; la carga y galería se implementarán en las partes siguientes.
+La API permite subir, listar y borrar. El formulario y la galería React corresponden a Parte 4.
 
 ```sh
 npm test
@@ -78,17 +78,41 @@ npm run db:check -w server
 npm run cloud:check -w server
 ```
 
-`GET /api/health` comprueba PostgreSQL. Las rutas de activos se incorporarán en
-las partes siguientes. La interfaz inicial todavía no permite subir ni borrar.
+`GET /api/health` comprueba PostgreSQL. La interfaz inicial todavía no permite
+subir ni borrar; las operaciones de activos ya están disponibles mediante HTTP.
 
 ## Ingesta y subida cloud — Parte 2
 
 Multer recibe un archivo de hasta 10 MiB con título y autor. La ingesta valida
 MIME, extensión y contenido, transfiere con el SDK firmado y compensa fallos de
 persistencia. Un diario durable conserva las referencias de operaciones inciertas.
-El controlador exige persistencia confirmada antes de responder 201; permanece
-sin registrar en la API pública hasta conectar Prisma en la Parte 3.
+El controlador exige persistencia confirmada antes de responder 201. La Parte 3
+conecta ese contrato con Prisma y registra la ruta pública.
 
 - [Límites, validación y compensación](docs/ingesta.md).
 - [Pruebas automatizadas y prueba real de seis formatos](docs/pruebas-parte-2.md).
 - [Resultados de verificación de la Parte 2](docs/informe-parte-2.md).
+
+## CRUD y sincronización — Parte 3
+
+`POST /api/archivos`, `GET /api/archivos` y `DELETE /api/archivos/:id` conectan
+Cloudinary y PostgreSQL. El listado admite búsqueda, categoría y paginación.
+El borrado confirma cloud antes de eliminar metadatos y conserva estados recuperables
+ante fallos. El listado excluye los activos con borrado pendiente.
+
+- [Contrato REST y respuestas](docs/api.md).
+- [Estados y comandos de recuperación](docs/recuperacion.md).
+- [Pruebas con DB y flujo cloud real](docs/pruebas-parte-3.md).
+- [Resultados de verificación de la Parte 3](docs/informe-parte-3.md).
+
+```sh
+npm run test:db -w server
+# Requiere FFmpeg, Neon de prueba y Cloudinary configurados:
+npm run test:assets:live -w server
+# Inspección sin modificar recursos:
+npm run assets:recover -w server
+npm run uploads:reconcile -w server
+```
+
+Los informes por parte conservan el estado de su entrega. El formulario, la galería
+y la demostración final desde React se completarán en Parte 4.

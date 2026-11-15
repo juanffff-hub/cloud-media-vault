@@ -44,6 +44,6 @@ la prueba exige HTTP 200 y un documento con cabecera PDF en la URL entregada.
 
 ## Entrega a Parte 3
 
-Montar `createUploadRouter` en `/api/archivos` solo después de inyectar Prisma en
-`AssetPersistence.create` y el diario durable. Mantener la compensación ya implementada.
-Reconciliar primero con DB antes de limpiar referencias pendientes del diario.
+Parte 3 ya monta `createUploadRouter` en `/api/archivos` con Prisma en
+`AssetPersistence.create` y el diario durable. Conserva la compensación e incorpora
+reconciliación con consulta DB previa. Ver [pruebas de CRUD](pruebas-parte-3.md).
