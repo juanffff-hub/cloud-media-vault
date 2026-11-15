@@ -36,3 +36,11 @@ test('una escritura confirmada por consulta posterior no provoca compensación',
     findUnique: vi.fn().mockResolvedValue(row) } } as unknown as PrismaClient;
   await expect(createAssetRepository(database).create(metadata)).resolves.toEqual(row);
 });
+
+test('CHECK SQL 23514 envuelto por adapter-pg es un rechazo definitivo', async () => {
+  const error = Object.assign(new Error('check failed'), { code: 'P2039',
+    meta: { driverAdapterError: { cause: { kind: 'postgres', code: '23514' } } } });
+  const database = { activo: { create: vi.fn().mockRejectedValue(error), findUnique: vi.fn() } } as unknown as PrismaClient;
+  await expect(createAssetRepository(database).create(metadata)).rejects.toBe(error);
+  expect(database.activo.findUnique).not.toHaveBeenCalled();
+});

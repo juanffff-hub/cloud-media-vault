@@ -23,7 +23,11 @@ export function createAssetRepository(database: Pick<PrismaClient, 'activo' | '$
       try { saved = await database.activo.create({ data, select: assetSelect }); }
       catch (error) {
         // Rechazos definitivos de SQL permiten compensar. Una respuesta de red perdida no.
-        const code = (error as { code?: string } | null)?.code;
+        const failure = error as { code?: string; meta?: { driverAdapterError?: { cause?: { kind?: string; code?: string } } } } | null;
+        const code = failure?.code;
+        const cause = failure?.meta?.driverAdapterError?.cause;
+        // adapter-pg 7.10 devuelve CHECK (23514) dentro de P2039, no como P2004.
+        if (cause?.kind === 'postgres' && cause.code === '23514') throw error;
         if (code && ['P2000', 'P2002', 'P2003', 'P2004', 'P2011', 'P2014', 'P2020'].includes(code)) throw error;
         try {
           saved = await database.activo.findUnique({ where: { publicId_resourceType: {
