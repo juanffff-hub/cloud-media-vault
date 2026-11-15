@@ -2,8 +2,8 @@
 
 El contrato `CloudStorage` separa servicios de aplicación del SDK. Recibe un buffer
 acotado y categoría; devuelve URL HTTPS, publicId, resourceType, tamaño y formato
-realmente devueltos por el proveedor. La ingesta de Parte 2 está preparada; aún no
-se registra el POST porque la integración con persistencia real corresponde a Parte 3.
+realmente devueltos por el proveedor. El POST conecta esa ingesta con Prisma;
+solo confirma éxito después de persistir los metadatos.
 
 | Categoría | resource_type | Formatos |
 | --- | --- | --- |
@@ -19,7 +19,7 @@ Las credenciales se pasan al SDK solo desde el backend. Los IDs usan UUID y pref
 `cloud-media-vault/`; no se derivan del nombre original ni permiten sobrescritura.
 El adaptador conserva un identificador candidato seguro cuando la respuesta es
 incierta. El servicio de ingesta compensa y registra referencias pendientes en un diario;
-la reconciliación con PostgreSQL se conectará en Parte 3.
+la reconciliación consulta PostgreSQL antes de decidir si conserva o elimina el recurso.
 El SDK recibe un timeout explícito. La validación de firma, MIME y extensión
 pertenece a la ingesta; los formatos del proveedor son una segunda comprobación.
 
@@ -33,7 +33,7 @@ referencia debe conservarse para reconciliar, nunca suponerse automáticamente a
 Solo `ok` y `not found` confirman que el recurso ya no está; una respuesta ambigua
 o error rechaza la operación. Se solicita `invalidate: true`; la invalidación CDN
 puede tardar en propagarse. El listado se actualizará tras confirmar la operación.
-La Parte 3 debe obtener esta referencia desde PostgreSQL a partir del UUID de API.
+El servicio de borrado obtiene esta referencia desde PostgreSQL a partir del UUID de API.
 
 Prueba de autenticación real, sin subir ni borrar recursos:
 

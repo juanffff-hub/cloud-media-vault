@@ -1,7 +1,7 @@
 # Modelo de metadatos
 
 `Activo` no contiene binarios. Su UUID identifica el registro de la API; `publicId`
-y `resourceType` identifican juntos el recurso de Cloudinary. Solo se guardará la
+y `resourceType` identifican juntos el recurso de Cloudinary. Solo se guarda la
 `secure_url` HTTPS realmente devuelta por el proveedor.
 
 | Campo | Propósito |
@@ -17,8 +17,10 @@ y `resourceType` identifican juntos el recurso de Cloudinary. Solo se guardará 
 | ultimoErrorCodigo | Código seguro de fallo; nunca respuesta cruda ni credenciales |
 | actualizadoEn | Última modificación, utilizable para control de concurrencia |
 
-Solo los activos en estado `ACTIVO` serán visibles en el listado normal. La Parte 3
-implementará las transiciones, exclusión mutua y reintentos; estos campos preparan ese contrato.
+Solo los activos en estado `ACTIVO` son visibles en el listado normal. La Parte 3
+implementa las transiciones, reservas condicionales y reintentos. intentosBorrado
+actúa como versión de cada reserva para impedir escrituras de un intento antiguo.
+Detalle: [recuperación](recuperacion.md).
 
 Los índices compuestos comienzan por estado y cubren fecha/ID descendentes con y sin
 categoría. El ID desempata fechas iguales. Un índice GIN con `pg_trgm` facilita
@@ -30,7 +32,7 @@ representa las restricciones CHECK en el modelo.
 
 Prisma 7.10.1 usa `prisma.config.ts` para la URL de migraciones (`DIRECT_URL`). El
 cliente generado en `src/generated/prisma` es TypeScript ESM y no se versiona.
-La ejecución empleará `@prisma/adapter-pg` con `DATABASE_URL` agrupada de Neon.
+La ejecución emplea `@prisma/adapter-pg` con `DATABASE_URL` agrupada de Neon.
 
 ## Comandos desde la raíz
 

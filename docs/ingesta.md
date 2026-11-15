@@ -20,8 +20,8 @@ Un archivo que supera el máximo responde 413. Si los cupos están ocupados, res
 500 `UPLOAD_BUSY` para que el cliente pueda reintentar, conforme a los códigos del contrato.
 Los errores no incluyen el mensaje original del parser ni los datos del formulario.
 
-La recepción se prueba en rutas de test. `POST /api/archivos` permanece sin registrar
-en la aplicación hasta conectar la persistencia real en Parte 3.
+La recepción se prueba de forma aislada y mediante `POST /api/archivos`, registrado
+con persistencia Prisma real desde Parte 3.
 
 Referencia: [Multer](https://expressjs.com/en/resources/middleware/multer/).
 
@@ -39,15 +39,16 @@ Cloudinary vuelve a comprobar el formato al procesar el archivo.
 
 Referencia: [alcance de file-type](https://github.com/sindresorhus/file-type).
 
-## Contrato preparado para Parte 3
+## Contrato conectado en Parte 3
 
 `createUploadRouter` compone multipart, validación y servicio de ingesta. Exige
 `AssetPersistence.create`, que debe resolver tras confirmar PostgreSQL. Solo entonces
 responde 201 `{ data: registro }`. El contrato de persistencia recibe únicamente
 metadatos; nunca recibe el buffer. La prueba del endpoint usa persistencia simulada.
 
-La ruta continúa ausente de `app.ts`; la aplicación pública responde 404 al POST.
-La Parte 3 conectará Prisma y montará la ruta, inyectando también `createUploadJournal()`.
+El punto de entrada inyecta el repositorio Prisma, Cloudinary y `createUploadJournal()`
+en la aplicación. Sin dependencias de ingesta, la fábrica usada en pruebas de salud
+no registra POST; la aplicación real sí lo registra.
 
 ## Compensación y recuperación
 
@@ -71,4 +72,6 @@ un estado sin resolver, verificar primero en PostgreSQL si existe publicId/resou
 si existe, conservar cloud y reconciliar el diario. Si no existe, verificar el resultado
 remoto y reintentar el borrado del recurso de este proyecto. Nunca borrar automáticamente
 una referencia solo por aparecer pendiente: DB pudo confirmar antes de la interrupción.
-La automatización de reconciliación con el repositorio real se incorpora en Parte 3.
+Los comandos de Parte 3 ejecutan esta reconciliación con el repositorio real;
+ver [recuperación](recuperacion.md). Una escritura de resultado incierto conserva
+cloud y responde PERSISTENCE_UNCERTAIN hasta poder comprobar qué ocurrió en DB.
