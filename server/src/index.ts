@@ -16,7 +16,7 @@ try {
   const persistence = createAssetRepository(database);
   const cloud = createCloudinaryStorage(config);
   const journal = createUploadJournal();
-  const server = createApp(config, healthCheck, { upload: { persistence, cloud, journal } }).listen(config.PORT, '127.0.0.1', () => {
+  const server = createApp(config, healthCheck, { upload: { persistence, cloud, journal }, list: persistence }).listen(config.PORT, '127.0.0.1', () => {
     console.info(`Cloud Media Vault API disponible en el puerto ${config.PORT}`);
   });
   server.on('error', async () => {
