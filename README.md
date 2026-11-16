@@ -9,17 +9,43 @@ El binario se guarda exclusivamente en Cloudinary. PostgreSQL conserva URL HTTPS
 referencia cloud y metadatos. No hay login: el autor es un dato del formulario,
 no una identidad verificada. Este proyecto es independiente de BuscaCampus.
 
+## Demostración y entrega
+
+- **Repositorio:** [juanffff-hub/cloud-media-vault](https://github.com/juanffff-hub/cloud-media-vault).
+- **Video:** [ver o descargar la demostración completa (MP4)](Video%20Demostracion%20en%20VIVO/Taller%20Media%20Cloud%20Voult%20Video%20Funcionamiento.mp4).
+- **Revisión final:** [requisitos comprobados y resultados de pruebas](docs/revision-final.md).
+
+La grabación de pantalla dura aproximadamente **5 minutos y 7 segundos**, está en
+1080p y pesa **19,5 MB**. Muestra rechazos de archivos inválidos, subida de imagen,
+video y PDF, sus recursos en Cloudinary y registros en Neon, y eliminación desde
+la web con comprobación en ambos servicios. Al final se muestran más cargas,
+búsqueda, filtros y paginación. No contiene narración; la evidencia es visual.
+Si GitHub no reproduce el archivo, descárgalo para verlo.
+
+| Momento aproximado | Evidencia |
+| --- | --- |
+| 00:00–00:50 | Validaciones de tamaño, formato, contenido y selección |
+| 00:50–01:55 | Subida desde React de imagen, video y PDF |
+| 01:55–02:35 | Registros en Neon y recursos en Cloudinary |
+| 02:35–03:50 | Borrado desde React, búsqueda por publicId sin resultados en Cloudinary y consulta vacía en Neon |
+| 03:50–05:07 | Nuevas cargas y uso de la biblioteca, búsqueda, filtros y paginación |
+
+El MP4 del repositorio es evidencia de entrega. El límite de 10 MB se aplica a
+los archivos que recibe la aplicación, no al tamaño de esta grabación.
+
 ## Equipo
 
 | Parte | Integrante | Cuenta / rama | Responsabilidad |
 | --- | --- | --- | --- |
 | 1 | Juan Felipe Fajardo | juanffff-hub / fajardo-cloud-vault | Arquitectura cloud y base de datos |
 | 2 | David Neira Conde | DavidN09 / neira-cloud-vault | Ingesta y subida cloud |
-| 3 | Juan Sebastian Gomez Muñoz | sebasgomezmunoz3-ship-it / gomez-cloud-vault | Persistencia CRUD y sincronización |
-| 4 | Juan David Ortiz Dcroz | Juanortizd17 / juanda-cloud-vault | Formulario, galería y QA; fusiona roles 4 y 5 |
+| 3 | Juan Sebastian Gomez | sebasgomezmunoz3-ship-it / gomez-cloud-vault | Persistencia CRUD y sincronización |
+| 4 | Juan David Ortiz | Juanortizd17 / juanda-cloud-vault | Formulario, galería y QA; fusiona roles 4 y 5 |
 
 Cada parte conserva seis commits técnicos y un PR con merge commit: 24 commits de
 implementación y cuatro integraciones, además del commit inicial del repositorio.
+La entrega añade un commit de documentación y video con la última cuenta,
+`Juanortizd17`; este cierre no modifica los 24 commits técnicos de las cuatro partes.
 Los titulares deben revisar y asumir su contribución; cambiar la cuenta Git no
 sustituye la participación real. [Consigna y rúbrica](docs/requisitos.md).
 
@@ -41,6 +67,14 @@ registrados para reconciliación. DELETE usa publicId y resourceType de la DB,
 confirma el borrado cloud e invalida caché antes de retirar metadatos. Los estados
 parciales quedan ocultos y admiten reintento. [Decisiones completas](docs/arquitectura.md).
 
+```text
+client/          React + Vite: formulario, vistas previas y galería
+server/          Express: validación, servicios, adaptadores y pruebas
+server/prisma/   Modelo de metadatos y migraciones PostgreSQL
+docs/            API, arquitectura, pruebas, recuperación e informes
+Video Demostracion en VIVO/   Grabación de la entrega
+```
+
 ## Instalar y configurar
 
 Requisitos: **Node.js 24 LTS**, **npm 11**, Git y cuentas propias de Neon y Cloudinary.
@@ -53,9 +87,9 @@ npm ci
 Copia las plantillas solo si todavía no existen los archivos locales:
 
 ```powershell
-Copy-Item server/.env.example server/.env
-Copy-Item server/.env.test.example server/.env.test
-Copy-Item client/.env.example client/.env
+if (!(Test-Path server/.env)) { Copy-Item server/.env.example server/.env }
+if (!(Test-Path server/.env.test)) { Copy-Item server/.env.test.example server/.env.test }
+if (!(Test-Path client/.env)) { Copy-Item client/.env.example client/.env }
 git check-ignore server/.env server/.env.test client/.env
 ```
 
@@ -165,7 +199,8 @@ la biblioteca. No hay reintento automático de POST ni transacción literal entr
 
 ## Entrega
 
-- [Guion de demo de ocho minutos y responsables](docs/demo.md).
+- [Video de demostración entregado](Video%20Demostracion%20en%20VIVO/Taller%20Media%20Cloud%20Voult%20Video%20Funcionamiento.mp4) y [revisión final](docs/revision-final.md).
+- [Pasos para repetir la demo, consulta general de Neon y guion de hasta ocho minutos](docs/demo.md).
 - [Modelo y migraciones](docs/modelo-datos.md), [salud](docs/salud.md), [Cloudinary](docs/cloudinary.md), [ingesta](docs/ingesta.md).
 - Informes históricos: [Parte 1](docs/informe-parte-1.md), [Parte 2](docs/informe-parte-2.md), [Parte 3](docs/informe-parte-3.md), [Parte 4](docs/informe-parte-4.md).
 - PR: [arquitectura #1](https://github.com/juanffff-hub/cloud-media-vault/pull/1), [ingesta #2](https://github.com/juanffff-hub/cloud-media-vault/pull/2), [CRUD #3](https://github.com/juanffff-hub/cloud-media-vault/pull/3), [interfaz #4](https://github.com/juanffff-hub/cloud-media-vault/pull/4).

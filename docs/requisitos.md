@@ -29,15 +29,15 @@ Las instrucciones del usuario definen la metodología y concretan el stack permi
 | Colaboración y sustentación | 15 % | Historial equilibrado, README y flujo completo demostrado en vivo |
 
 La rúbrica describe el borrado como «atómico». Cloudinary y PostgreSQL no comparten
-una transacción distribuida: se concretará con estado operativo y reintentos recuperables.
+una transacción distribuida: se implementa con estado operativo y reintentos recuperables.
 
 ## Contratos adicionales del proyecto
 
 Cloudinary + Neon/PostgreSQL + Prisma; máximo estricto de 10 MiB (10 485 760 bytes).
 JPEG, PNG, WebP, MP4, WebM y PDF; validación de MIME, extensión y contenido.
 `POST /api/archivos`, `GET /api/archivos`, `DELETE /api/archivos/:id`, `GET /api/health`.
-Solo habrá respuesta 201 tras confirmar cloud y persistencia. Si DB falla, compensar en cloud.
-El servidor obtiene `publicId` y `resourceType` desde DB para borrar. No habrá login.
+Solo hay respuesta 201 tras confirmar cloud y persistencia. Si DB falla, compensar en cloud.
+El servidor obtiene `publicId` y `resourceType` desde DB para borrar. No hay login.
 Listado normal excluye borrados pendientes. Pruebas simuladas y reales en recursos exclusivos.
 
 ## Entrega incremental
@@ -47,4 +47,5 @@ Listado normal excluye borrados pendientes. Pruebas simuladas y reales en recurs
 3. Persistencia, listado y eliminación recuperable.
 4. Formulario, galería, integración, QA y demo final.
 
-El contrato previsto no implica que sus endpoints ya estén implementados.
+Las cuatro partes están implementadas e integradas. La [revisión final](revision-final.md)
+relaciona los requisitos con la implementación, las pruebas y la demostración entregada.

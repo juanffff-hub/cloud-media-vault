@@ -1,7 +1,31 @@
-# Demostración de ocho minutos
+# Demostración del taller
 
 Objetivo: mostrar que un binario llega a Cloudinary, sus metadatos a Neon y un
 borrado desde React retira ambos. Usar solo archivos propios de Cloud Media Vault.
+
+## Video entregado y repetición sencilla
+
+La [grabación entregada](../Video%20Demostracion%20en%20VIVO/Taller%20Media%20Cloud%20Voult%20Video%20Funcionamiento.mp4)
+dura aproximadamente 5:07 y muestra el flujo solicitado por el profesor. El guion
+de ocho minutos que aparece más abajo es una propuesta para una sustentación en
+equipo, no la duración ni una transcripción del video.
+
+Con el entorno ya configurado, desde la raíz del proyecto:
+
+1. Ejecutar `npm run dev` y mantener esa terminal abierta. Abrir
+   `http://127.0.0.1:5173`, Cloudinary Media Library y Neon SQL Editor, en la base
+   `cloud_media_vault` del proyecto. No mostrar pantallas de credenciales.
+2. Mostrar el rechazo de un archivo mayor de 10 MB, un formato no admitido y un
+   archivo que tenga extensión permitida pero contenido inválido.
+3. Subir una imagen, un video y un PDF válidos, uno por uno, con título y autor.
+   Esperar el mensaje de éxito y su aparición en la galería.
+4. Ejecutar la consulta general indicada abajo. Mostrar las nuevas filas y sus
+   `publicId`; actualizar Cloudinary y localizar esos mismos recursos.
+5. Eliminar los archivos de esta demostración desde la web y confirmar que
+   desaparecen. Ejecutar otra vez la misma consulta de Neon.
+6. En el mismo entorno de Cloudinary, quitar filtros anteriores y buscar cada
+   `publicId` completo que se guardó antes de borrar. Mostrar la ausencia de
+   resultados. Si la tabla tenía otros activos, sus filas deben permanecer.
 
 ## Preparación antes de presentar
 
@@ -40,21 +64,20 @@ verificación con una recarga de una URL cacheada.
 
 ## Comprobación de datos
 
-Desde Neon Tables se pueden filtrar los títulos exactos de esta ejecución. Si se
-prefiere SQL Editor, usar una consulta de solo lectura como la siguiente, adaptando
-el título al archivo recién subido:
+En Neon SQL Editor, esta consulta muestra todos los archivos subidos, del más
+reciente al más antiguo, sin buscar un título específico:
 
 ```sql
-SELECT "id", "titulo", "secureUrl", "publicId", "resourceType", "categoria",
-       "mimeType", "tamanoBytes", "fechaSubida", "subidoPor", "estado"
+SELECT "titulo", "categoria", "publicId", "secureUrl"
 FROM "Activo"
-WHERE "titulo" = 'Demo taller - imagen'
 ORDER BY "fechaSubida" DESC;
 ```
 
-Antes de borrar, seleccionar el ID exacto de esa subida. Después, la consulta por
-ese ID debe devolver cero filas. El nombre de tabla y campos coincide con la migración.
-En Cloudinary, buscar el **publicId guardado**, no el nombre original del archivo.
+Antes de borrar, guardar los `publicId` de los archivos de la demo. Después de
+eliminarlos desde React, volver a ejecutar la misma consulta: sus filas ya no
+deben aparecer. Si eran los únicos registros, el resultado estará vacío. El nombre
+de tabla y campos coincide con la migración. En Cloudinary, buscar el **publicId
+guardado**, no el UUID de PostgreSQL ni el nombre original del archivo.
 
 ## Si algo falla
 
