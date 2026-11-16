@@ -11,5 +11,7 @@ server/src/generated/
 server/var/
 tmp/
 uploads/
+test-results/
+playwright-report/
 .DS_Store
 Thumbs.db

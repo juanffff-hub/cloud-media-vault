@@ -37,3 +37,5 @@ jobs:
       - run: npm run db:validate -w server
       - run: npm run check
       - run: npm run test:db -w server
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e -w client

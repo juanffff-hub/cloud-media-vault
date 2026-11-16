@@ -7,7 +7,7 @@ Express 5, Prisma 7.10.1 con adaptador PostgreSQL y Cloudinary SDK solo en backe
 flowchart LR
   Usuario[Usuario] --> React[React + Vite]
   Prueba[Verificación HTTP real] --> API[Express: CORS, rutas y errores]
-  React -.->|Interfaz de Parte 4| API
+  React -->|FormData, listado y DELETE por ID| API
   API --> Salud[Servicio de salud]
   Salud --> Prisma[Prisma + adaptador pg]
   Prisma -->|URL y metadatos| Neon[(Neon PostgreSQL)]
@@ -24,11 +24,11 @@ flowchart LR
   Borrado --> Prisma
 ```
 
-La conexión discontinua representa la interfaz React pendiente de Parte 4.
 La Parte 1 provee base ejecutable, configuración, modelo/migración, salud y adaptadores.
 La Parte 2 aporta la ingesta y transferencia. La Parte 3 conecta Prisma, registra
 POST/GET/DELETE y permite recuperar operaciones interrumpidas. Solo hay 201 tras
-confirmar cloud y persistencia.
+confirmar cloud y persistencia. La Parte 4 conecta el formulario y la galería responsive,
+con progreso real de envío y confirmación final de guardado.
 
 ## Decisiones
 
@@ -55,11 +55,15 @@ confirmar cloud y persistencia.
    la entrega de PDF en su configuración Security. Borrado con invalidación de CDN.
 8. **Sin autenticación añadida.** `subidoPor` no acredita identidad. CORS no impide
    solicitudes desde herramientas ajenas al navegador. El alcance es la aplicación del taller.
+9. **Estado de interfaz.** React revoca URLs temporales al cambiar archivos, cancela
+   consultas obsoletas y refresca tras subir/borrar. Conserva IDs de borrado pendiente
+   en sessionStorage para reintentar desde la misma pestaña. El servidor conserva el
+   estado duradero; un cierre de pestaña no sustituye los comandos de recuperación.
 
 ## Límites del estado actual
 
-- Multipart, validación, transferencia y CRUD están implementados y probados con
-  Cloudinary y Neon. Faltan formulario, galería y demo final desde React.
+- Formulario, vistas previas, progreso, galería, filtros, paginación y borrado están
+  conectados y probados con React, Cloudinary y Neon; ver [entrega final](informe-parte-4.md).
 - `health` verifica DB; no hace ping a Cloudinary.
 - Multer admite dos cargas simultáneas, limita cada archivo a 10 MiB y acota campos,
   partes y recepción. La inspección usa un worker con plazo y memoria acotados.

@@ -1,6 +1,6 @@
 # Contrato REST — Cloud Media Vault
 
-Versión de entrega: Parte 3. Base local: `http://127.0.0.1:3001/api`.
+Versión de entrega: Parte 4 (contrato de Parte 3). Base local: `http://127.0.0.1:3001/api`.
 Este documento es la especificación equivalente a OpenAPI; sus ejemplos y campos
 se contrastan con las pruebas HTTP indicadas al final. No requiere autenticación.
 `subidoPor` es texto ingresado por el usuario, no una identidad verificada.

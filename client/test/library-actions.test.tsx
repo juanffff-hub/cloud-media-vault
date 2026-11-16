@@ -77,4 +77,3 @@ test('DELETE envía solo ID, acepta 204 vacío y 404 de activo; rechaza otros er
   await expect(api.remove(assetFixture.id, new AbortController().signal)).resolves.toBeUndefined();
   await expect(api.remove(assetFixture.id, new AbortController().signal)).rejects.toMatchObject({ status: 404, code: 'HTTP_ERROR' });
 });
-
