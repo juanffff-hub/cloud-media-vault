@@ -1,17 +1,16 @@
-import { useId, useRef, useState, type FormEvent } from 'react';
-import { FILE_ACCEPT, formatBytes, validateDraft, validateFile, type FormErrors, type UploadDraft } from '../lib/files';
+import { useId, useState, type FormEvent } from 'react';
+import { validateDraft, type FormErrors, type UploadDraft } from '../lib/files';
 import { Icon } from './Icon';
+import { FilePicker } from './FilePicker';
 
 export function UploadForm({ onValid }: { onValid?: (draft: UploadDraft) => void }) {
   const prefix = useId();
-  const input = useRef<HTMLInputElement>(null);
   const [titulo, setTitulo] = useState('');
   const [subidoPor, setSubidoPor] = useState('');
   const [archivo, setArchivo] = useState<File | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
-  const selectFile = (file?: File) => {
-    const error = validateFile(file);
-    setArchivo(error ? null : file!);
+  const selectFile = (file: File | null, error?: string) => {
+    setArchivo(file);
     setErrors(previous => ({ ...previous, archivo: error }));
   };
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -40,16 +39,7 @@ export function UploadForm({ onValid }: { onValid?: (draft: UploadDraft) => void
         {errors.subidoPor && <p className="field-error" id={`${prefix}-autor-error`} role="alert">{errors.subidoPor}</p>}
       </div>
       <div className="field"><label htmlFor={`${prefix}-archivo`}>Archivo <span>hasta 10 MB</span></label>
-        <div className="file-picker"><span className="file-picker-icon"><Icon name="upload" size={26}/></span>
-          <p className="picker-title">Dale espacio a tu contenido</p>
-          <button type="button" className="button button-secondary" onClick={() => input.current?.click()}>Elegir archivo</button>
-          <input className="visually-hidden" ref={input} id={`${prefix}-archivo`} type="file" accept={FILE_ACCEPT}
-            onChange={event => { selectFile(event.target.files?.[0]); event.target.value = ''; }}
-            aria-invalid={Boolean(errors.archivo)} aria-describedby={`${prefix}-file-help${errors.archivo ? ` ${prefix}-file-error` : ''}`}/>
-          <p className="picker-formats" id={`${prefix}-file-help`}>JPEG, PNG, WebP · MP4, WebM · PDF</p>
-        </div>
-        {archivo && <p className="selected-file"><Icon name="file"/><span>{archivo.name}<small>{formatBytes(archivo.size)}</small></span></p>}
-        {errors.archivo && <p className="field-error" id={`${prefix}-file-error`} role="alert">{errors.archivo}</p>}
+        <FilePicker id={`${prefix}-archivo`} file={archivo} error={errors.archivo} onSelect={selectFile}/>
       </div>
       <button className="button button-primary upload-button" type="submit" disabled={!onValid}><Icon name="upload"/>Subir archivo</button>
       <p className="form-note">Imágenes, videos y documentos. Un archivo a la vez.</p>
