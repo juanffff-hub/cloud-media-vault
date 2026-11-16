@@ -28,6 +28,13 @@ borrado usa la API del proveedor; el listado se entrega con Cache-Control: no-st
 
 Para localizar pendientes y recuperar un ID concreto desde la terminal:
 
+React conserva el ID y título de una operación iniciada en sessionStorage antes de
+enviar DELETE. Si no confirma el resultado, muestra **Reintentar borrado** y actualiza
+la galería para ocultar estados parciales. Recargar la misma pestaña conserva ese
+aviso; cerrar la pestaña puede retirarlo. Para otra pestaña/equipo, usar los comandos
+de recuperación. Si el navegador bloquea su almacenamiento, el estado DB sigue siendo
+la fuente duradera. No se reintenta automáticamente ni se declara éxito ante un 500.
+
 ```sh
 npm run assets:recover -w server
 npm run assets:recover -w server -- --id UUID
