@@ -17,7 +17,7 @@ export function App() {
       <h1 id="page-title">Tu contenido,<br/><span>siempre a mano.</span></h1>
       <p className="intro-copy">Guarda imágenes, videos y documentos PDF.<br className="desktop-break"/> Un espacio para encontrar lo que importa.</p></div>
       <div className="format-stack" aria-hidden="true"><span className="format-tile format-image"><Icon name="image" size={33}/><small>IMAGEN</small></span><span className="format-tile format-video"><Icon name="video" size={33}/><small>VIDEO</small></span><span className="format-tile format-pdf"><Icon name="file" size={33}/><small>PDF</small></span></div>
-    </section><div className="workspace"><UploadForm upload={mediaApi.upload} onUploaded={() => setRevision(value => value + 1)}/><Library list={mediaApi.list} revision={revision}/></div>
+    </section><div className="workspace"><UploadForm upload={mediaApi.upload} onUploaded={() => setRevision(value => value + 1)}/><Library list={mediaApi.list} remove={mediaApi.remove} revision={revision}/></div>
     </main><footer className="footer"><span>Cloud Media Vault</span><span>Un lugar para lo que creas.</span></footer>
   </>;
 }

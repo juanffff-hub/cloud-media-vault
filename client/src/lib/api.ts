@@ -10,6 +10,7 @@ export type UploadFile = (draft: UploadDraft, options: UploadOptions) => Promise
 export interface AssetQuery { buscar?: string; categoria?: MediaCategory; pagina?: number; limite?: number }
 export interface AssetPage { data: Asset[]; meta: { pagina: number; limite: number; total: number; totalPaginas: number } }
 export type ListAssets = (query: AssetQuery, signal: AbortSignal) => Promise<AssetPage>;
+export type DeleteAsset = (id: string, signal: AbortSignal) => Promise<void>;
 export class ApiError extends Error {
   constructor(public readonly code: string, message: string, public readonly status = 0) { super(message); }
 }
@@ -23,6 +24,10 @@ const messages: Record<string, string> = {
   PERSISTENCE_FAILED: 'No se pudo guardar el archivo. Inténtalo de nuevo.',
   PERSISTENCE_UNCERTAIN: 'No se pudo confirmar el guardado. Revisa la biblioteca antes de volver a subir.',
   JOURNAL_UNAVAILABLE: 'No se pudo completar la carga. Inténtalo de nuevo.',
+  CLOUD_DELETE_FAILED: 'No se pudo confirmar el borrado del archivo. Puedes reintentarlo.',
+  DELETE_PENDING: 'El archivo ya no está disponible, pero falta cerrar el borrado. Espera cinco minutos y reintenta.',
+  DELETE_IN_PROGRESS: 'El borrado sigue en curso. Espera cinco minutos antes de reintentar.',
+  ASSET_NOT_FOUND: 'El archivo ya no está en la biblioteca.',
 };
 export function apiError(status: number, body: unknown): ApiError {
   const code = (body as { error?: { code?: unknown } } | null)?.error?.code;
@@ -46,6 +51,18 @@ export function parseAsset(value: unknown): Asset {
   return row as Asset;
 }
 export function createMediaApi(baseUrl: string, xhrFactory = () => new XMLHttpRequest(), request: typeof fetch = (...args) => fetch(...args)) {
+  const remove: DeleteAsset = async (id, signal) => {
+    try {
+      const response = await request(`${baseUrl}/archivos/${encodeURIComponent(id)}`, { method: 'DELETE', signal: AbortSignal.any([signal, AbortSignal.timeout(60_000)]), credentials: 'omit' });
+      if (response.status === 204) return;
+      const body = await response.json();
+      if (response.status === 404 && body?.error?.code === 'ASSET_NOT_FOUND') return;
+      throw apiError(response.status, body);
+    } catch (error) {
+      if (signal.aborted || error instanceof ApiError) throw error;
+      throw new ApiError('NETWORK_ERROR', 'No se pudo confirmar el borrado. Comprueba la conexión y reintenta con este mismo archivo.');
+    }
+  };
   const list: ListAssets = async (query, signal) => {
     const params = new URLSearchParams({ pagina: String(query.pagina ?? 1), limite: String(query.limite ?? 12) });
     if (query.buscar?.trim()) params.set('buscar', query.buscar.trim());
@@ -100,5 +117,5 @@ export function createMediaApi(baseUrl: string, xhrFactory = () => new XMLHttpRe
       xhr.send(form);
     } catch { finish(new ApiError('NETWORK_ERROR', 'No se pudo iniciar la carga. Comprueba tu conexión.')); }
   });
-  return { upload, list };
+  return { upload, list, remove };
 }
