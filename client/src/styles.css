@@ -65,6 +65,14 @@ h1 span { color: #7c8d70; }
 .picker-formats { font-size: 9px; color: #68775f; line-height: 1.6; margin-top: 14px; }
 .upload-button { width: 100%; }
 .form-note { text-align: center; font-size: 10px; color: #6f7a69; margin-top: 12px; line-height: 1.7; }
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.upload-progress { margin-top: 18px; font-size: 11px; color: var(--muted); }
+.upload-progress p { display: flex; justify-content: space-between; gap: 10px; }.upload-progress strong { color: var(--green); }
+.upload-progress progress { display: block; width: 100%; height: 6px; border: 0; border-radius: 8px; overflow: hidden; margin: 10px 0; accent-color: #5a8054; background: #e9eee4; }
+.upload-progress progress::-webkit-progress-bar { background: #e9eee4; }.upload-progress progress::-webkit-progress-value { background: #5a8054; border-radius: 8px; }
+.upload-progress small { font-size: 10px; }.feedback { display: flex; gap: 8px; align-items: start; font-size: 12px; line-height: 1.6; margin-top: 16px; padding: 12px; border-radius: 8px; overflow-wrap: anywhere; }
+.feedback-success { background: #edf5e7; color: #345c38; }.feedback-error { background: #fff0ec; color: var(--error); }
+.spinner { width: 16px; height: 16px; border: 2px solid #ffffff60; border-top-color: white; border-radius: 50%; animation: spin .8s linear infinite; }@keyframes spin { to { transform: rotate(360deg); } }
 .selected-file { display: flex; align-items: center; gap: 10px; font-size: 12px; margin-top: 12px; padding: 10px; background: #f4f6f0; border-radius: 8px; overflow-wrap: anywhere; }
 .selected-file span { min-width: 0; }
 .selected-file small { display: block; color: var(--muted); font-size: 10px; margin-top: 3px; }
