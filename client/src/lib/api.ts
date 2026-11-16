@@ -7,6 +7,9 @@ export interface Asset {
 }
 export interface UploadOptions { signal: AbortSignal; onProgress(percent: number | null, processing: boolean): void }
 export type UploadFile = (draft: UploadDraft, options: UploadOptions) => Promise<Asset>;
+export interface AssetQuery { buscar?: string; categoria?: MediaCategory; pagina?: number; limite?: number }
+export interface AssetPage { data: Asset[]; meta: { pagina: number; limite: number; total: number; totalPaginas: number } }
+export type ListAssets = (query: AssetQuery, signal: AbortSignal) => Promise<AssetPage>;
 export class ApiError extends Error {
   constructor(public readonly code: string, message: string, public readonly status = 0) { super(message); }
 }
@@ -42,7 +45,26 @@ export function parseAsset(value: unknown): Asset {
   }
   return row as Asset;
 }
-export function createMediaApi(baseUrl: string, xhrFactory = () => new XMLHttpRequest()) {
+export function createMediaApi(baseUrl: string, xhrFactory = () => new XMLHttpRequest(), request: typeof fetch = (...args) => fetch(...args)) {
+  const list: ListAssets = async (query, signal) => {
+    const params = new URLSearchParams({ pagina: String(query.pagina ?? 1), limite: String(query.limite ?? 12) });
+    if (query.buscar?.trim()) params.set('buscar', query.buscar.trim());
+    if (query.categoria) params.set('categoria', query.categoria);
+    try {
+      const response = await request(`${baseUrl}/archivos?${params}`, { signal: AbortSignal.any([signal, AbortSignal.timeout(20_000)]), cache: 'no-store', credentials: 'omit' });
+      const body = await response.json();
+      if (!response.ok) throw apiError(response.status, body);
+      const meta = body?.meta as AssetPage['meta'] | undefined;
+      if (!Array.isArray(body?.data) || !meta || ![meta.pagina, meta.limite, meta.total, meta.totalPaginas].every(Number.isSafeInteger) ||
+        meta.pagina < 1 || meta.limite < 1 || meta.limite > 50 || meta.total < 0 || meta.totalPaginas !== Math.ceil(meta.total / meta.limite) || body.data.length > meta.limite) {
+        throw new ApiError('INVALID_RESPONSE', 'La biblioteca devolvió una respuesta incompleta. Vuelve a intentarlo.');
+      }
+      return { data: body.data.map(parseAsset), meta };
+    } catch (error) {
+      if (signal.aborted || error instanceof ApiError) throw error;
+      throw new ApiError('NETWORK_ERROR', 'No pudimos cargar tu biblioteca. Comprueba la conexión y vuelve a intentarlo.');
+    }
+  };
   const upload: UploadFile = (draft, options) => new Promise((resolve, reject) => {
     if (options.signal.aborted) { reject(new ApiError('CANCELLED', 'La carga fue cancelada.')); return; }
     const xhr = xhrFactory();
@@ -78,5 +100,5 @@ export function createMediaApi(baseUrl: string, xhrFactory = () => new XMLHttpRe
       xhr.send(form);
     } catch { finish(new ApiError('NETWORK_ERROR', 'No se pudo iniciar la carga. Comprueba tu conexión.')); }
   });
-  return { upload };
+  return { upload, list };
 }
